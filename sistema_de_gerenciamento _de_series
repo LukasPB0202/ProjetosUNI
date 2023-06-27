@@ -1,0 +1,125 @@
+package DAO;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import Model.Serie;
+
+public class SerieDAO {
+    private Connection connection;
+
+    public SerieDAO() {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/SerieA3";
+            String user = "root";
+            String password = "ventilador251455Op";
+            connection = DriverManager.getConnection(url, user, password);
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void inserirSerie(Serie serie) {
+        String sql = "INSERT INTO series (titulo, genero, descricao, temporada) VALUES (?, ?, ?, ?)";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, serie.getTitulo());
+            statement.setString(2, serie.getGenero());
+            statement.setString(3, serie.getDescricao());
+            statement.setInt(4, serie.getTemporada());
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void atualizarSerie(Serie serie) {
+        String sql = "UPDATE series SET titulo=?, genero=?, descricao=?, temporada=? WHERE id=?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, serie.getTitulo());
+            statement.setString(2, serie.getGenero());
+            statement.setString(3, serie.getDescricao());
+            statement.setInt(4, serie.getTemporada());
+            statement.setInt(5, serie.getId());
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void excluirSerie(int id) {
+        String sql = "DELETE FROM series WHERE id=?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Serie> consultarSeries() {
+        List<Serie> series = new ArrayList<>();
+        String sql = "SELECT * FROM series";
+
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String titulo = resultSet.getString("titulo");
+                String genero = resultSet.getString("genero");
+                String descricao = resultSet.getString("descricao");
+                int temporada = resultSet.getInt("temporada");
+
+                Serie serie = new Serie(titulo, genero, descricao, temporada);
+                serie.setId(id);
+                series.add(serie);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return series;
+    }
+
+    public Serie consultarSeriePorId(int id) {
+        String sql = "SELECT * FROM series WHERE id=?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, id);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                String titulo = resultSet.getString("titulo");
+                String genero = resultSet.getString("genero");
+                String descricao = resultSet.getString("descricao");
+                int temporada = resultSet.getInt("temporada");
+
+                Serie serie = new Serie(titulo, genero, descricao, temporada);
+                serie.setId(id);
+                return serie;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+}
